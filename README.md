@@ -1,2 +1,5 @@
 # Multi-Agent-Experiment
-This is a program of a simple multi-agent shooting game. 
+This is a simple program of a multi-agent shooting game. 
+
+Red: Agent. 
+Blue: An algorithm. 
