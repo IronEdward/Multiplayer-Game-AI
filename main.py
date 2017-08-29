@@ -1,25 +1,24 @@
-from pygame import *
 from pygame.locals import *
 import sys
 from time import sleep
 import numpy as np
 import random
 import tensorflow as tf
-from pylab import savefig
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 """
+-----Some Specifications-----
 
-------Agent Version 2------
+The opponent of the agent(Red) is a simple algorithm that gets stronger over episodes. See code for details.
 
-Convolutional Neural Nets:               No
-Bot:                                     Random Mode -> Medium Mode -> Boss Mode
-Layers:                                  3
+Bot(Blue):                               Random Mode -> Medium Mode -> Boss Mode
+Model:                                   Q Learning with experience replay and a target network
+Layers:                                  2
 Experience Replay:                       Yes
-Players:                                 Square
-Parameters:                              9
-Network Depth:                           1
+Players:                                 Square-Shaped
+Parameters:                              10
+Actions:                                 9
 Bullet:                                  Beam
 Activation Function:                     Linear
 Target Network:                          Yes
@@ -81,12 +80,12 @@ initialize = tf.global_variables_initializer()
 jList = []
 rList = []
 
-#init()
-#font.init()
-#myfont = font.SysFont('Comic Sans MS', 15)
-#myfont2 = font.SysFont('Comic Sans MS', 150)
-#myfont3 = font.SysFont('Gothic', 30)
-#disp = display.set_mode((disp_x, disp_y), 0, 32)
+init()
+font.init()
+myfont = font.SysFont('Comic Sans MS', 15)
+myfont2 = font.SysFont('Comic Sans MS', 150)
+myfont3 = font.SysFont('Gothic', 30)
+disp = display.set_mode((disp_x, disp_y), 0, 32)
 
 def calculate_score(total_reward, turns, win_or_lost):
     return (win_or_lost * 1000 + total_reward * 0.5 + 10000./turns * win_or_lost)/17.
@@ -123,6 +122,7 @@ def param_init():
 
 
 def screen_blit():
+    """Prints shapes to the display"""
     global disp, disp_x, disp_y, arena_x, arena_y, border, border_2, character_size, agent_x, \
     agent_y, bot_x, bot_y, character_init_health, agent_hp, bot_hp, red, blue, aqua, green, black, green_yellow, energy_blue, \
     agent_beam_fire, bot_beam_fire, agent_beam_x, agent_beam_y, bot_beam_x, bot_beam_y, agent_beam_size_x, agent_beam_size_y, \
@@ -157,6 +157,7 @@ def screen_blit():
 
 
 def bot_take_action():
+    """Function that returns the actions of the bot"""
     global epoch, agent_x, agent_y, bot_x, bot_y, character_size
     if epoch < 200:
         if random.randint(1, 100) > 95:
@@ -280,10 +281,6 @@ def beam_hit_detector(player):
             else:
                 return False
 
-"""
-def mapping(maximum, number):
-    return int(number * maximum)
-"""
 def action(agent_action, bot_action):
     global agent_x, agent_y, bot_x, bot_y, agent_hp, bot_hp, agent_beam_fire, \
     bot_beam_fire, agent_beam_x, bot_beam_x, agent_beam_y, bot_beam_y, agent_beam_size_x, \
@@ -338,7 +335,7 @@ def action(agent_action, bot_action):
 
     if bot_beam_fire == True:
         if beam_hit_detector("bot"):
-            #print "Agent Got Hit!"
+            print "Agent Got Hit!"
             agent_hp -= beam_damage
             reward += -20
             bot_beam_size_x = bot_beam_size_y = 0
@@ -418,7 +415,7 @@ def action(agent_action, bot_action):
                 reward += -1
     if agent_beam_fire == True:
         if beam_hit_detector("agent"):
-            #print "Bot Got Hit!"
+            print "Bot Got Hit!"
             bot_hp -= beam_damage
             reward += 40
             agent_beam_size_x = agent_beam_size_y = 0
@@ -519,9 +516,8 @@ with tf.Session() as sess:
                 e *= 0.9
                 success += 1
                 break
-            #if i % 1000 == 0:
-            #    screen_blit()
-            #    display.update()
+            screen_blit()
+            display.update()
 
         jList.append(j)
         rList.append(rAll)
@@ -531,12 +527,12 @@ with tf.Session() as sess:
             win_lost = 1
         print "Winner: ", winner, "   Estimated Score: ", calculate_score(rAll, j, win_lost)
         
-        if i % 1000 == 995 :
+        if i == 4999:
             plt.plot(jList)
-            savefig("/home/edward/Programming/Machine Learning/TensorFlow Projects/Shooting Game/Plots/Turns.png")
+            savefig("Turns.png")
             plt.close()
             plt.plot(rList)
-            savefig("/home/edward/Programming/Machine Learning/TensorFlow Projects/Shooting Game/Plots/Rewards.png")
+            savefig("Rewards.png")
             plt.close()
             saver = tf.train.Saver()
-            saver.save(sess, 'model(Ver. 4.3)', global_step = 1000)
+            saver.save(sess, 'model')
